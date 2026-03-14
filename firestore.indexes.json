@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "opens",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "emailId", "order": "ASCENDING" },
+        { "fieldPath": "ip", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "emails",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "sentAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

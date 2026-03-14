@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can only read/write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Emails: owner can read/write; Cloud Functions write via Admin SDK (bypasses rules)
+    match /emails/{emailId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Opens: owner of the parent email can read; only Admin SDK writes
+    match /opens/{openId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/emails/$(resource.data.emailId)).data.userId == request.auth.uid;
+      allow write: if false; // Only Cloud Functions (Admin SDK) write opens
+    }
+
+    // Clicks: same pattern as opens
+    match /clicks/{clickId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/emails/$(resource.data.emailId)).data.userId == request.auth.uid;
+      allow write: if false; // Only Cloud Functions (Admin SDK) write clicks
+    }
+  }
+}

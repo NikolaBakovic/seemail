@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void: #080B12;
+  --surface: #0D1117;
+  --panel: #131A24;
+  --border: #1E2A38;
+  --muted: #2D3B4E;
+  --amber: #F59E0B;
+  --emerald: #10B981;
+  --rose: #F43F5E;
+  --violet: #8B5CF6;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--void);
+  color: #E8EDF2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--void);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3D5068; }
+
+/* Focus ring */
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 4px; }
+
+/* Grid background on hero sections */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(248, 158, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(248, 158, 11, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glassmorphism panel */
+.glass {
+  background: rgba(19, 26, 36, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 42, 56, 0.8);
+}
+
+/* Glow effects */
+.glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); }
+.glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
+
+/* Animated gradient border */
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(245, 158, 11, 0.3); }
+  50% { border-color: rgba(245, 158, 11, 0.7); }
+}
+
+.border-animated { animation: borderGlow 2.5s ease-in-out infinite; }
+
+/* Status indicator pulse */
+@keyframes statusPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+}
+.status-live::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: statusPulse 1.8s ease-in-out infinite;
+}

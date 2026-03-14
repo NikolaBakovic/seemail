@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "MailTrack – Email Open Tracker",
+  "version": "1.0.0",
+  "description": "Track when your Gmail emails are opened and links are clicked.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "identity",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://us-central1-mailtracker-609a4.cloudfunctions.net/*",
+    "https://mailtrack-9umwjyu1b-nikolas-projects-34cf3b94.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://mailtrack-9umwjyu1b-nikolas-projects-34cf3b94.vercel.app/*",
+        "http://localhost:3000/*"
+      ],
+      "js": ["bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://mailtrack-9umwjyu1b-nikolas-projects-34cf3b94.vercel.app/*",
+      "https://mailtrack-mvp.vercel.app/*",
+      "http://localhost:3000/*"
+    ]
+  }
+}
