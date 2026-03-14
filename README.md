@@ -68,7 +68,7 @@ firebase deploy --only functions,firestore
 
 After deploy, note the function URL — it will look like:
 ```
-https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/api
+https://us-central1-mailtracker-609a4.cloudfunctions.net/api
 ```
 
 ### Update the API URL in two places:
@@ -102,7 +102,7 @@ https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/api
    firebase deploy --only hosting
    ```
 
-Your dashboard will be live at `https://YOUR_PROJECT_ID.web.app`
+Your dashboard will be live at `https://mailtrack-9umwjyu1b-nikolas-projects-34cf3b94.vercel.app/`
 
 ---
 
@@ -124,7 +124,7 @@ You can generate simple colored square PNGs using any image editor, or use a fre
 
 After deploying, the auth flow works as follows:
 
-1. User opens the dashboard at `https://YOUR_PROJECT_ID.web.app`
+1. User opens the dashboard at `https://mailtrack-9umwjyu1b-nikolas-projects-34cf3b94.vercel.app/`
 2. User signs in with Google
 3. The dashboard calls `syncTokenToExtension()` which posts the Firebase ID token via `window.postMessage`
 4. The Chrome extension's content script relays it to the background service worker via `chrome.runtime.sendMessage`
@@ -191,7 +191,7 @@ mailtrack-mvp/
 ├── functions/
 │   ├── index.js               # Express app: /pixel, /click, /email endpoints
 │   └── package.json
-│
+|
 ├── extension/
 │   ├── manifest.json          # MV3 manifest
 │   ├── background.js          # Service worker: auth, message router

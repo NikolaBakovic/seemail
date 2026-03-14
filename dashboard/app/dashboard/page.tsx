@@ -2,9 +2,10 @@
 // app/dashboard/page.tsx
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useRequireAuth } from "@/lib/withAuth";
 import { useAuth } from "@/lib/AuthContext";
-import { getEmails, EmailDoc, checkPlanLimit } from "@/lib/firebase";
+import { db, EmailDoc, checkPlanLimit } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import StatCard from "@/components/StatCard";
 
@@ -45,16 +46,26 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      try {
-        const data = await getEmails(user.uid);
-        setEmails(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
+    const emailsQuery = query(
+      collection(db, "emails"),
+      where("userId", "==", user.uid),
+      orderBy("sentAt", "desc"),
+      limit(50)
+    );
+
+    const unsubscribe = onSnapshot(
+      emailsQuery,
+      (snapshot) => {
+        setEmails(snapshot.docs.map((doc) => doc.data() as EmailDoc));
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
         setLoading(false);
       }
-    })();
+    );
+
+    return unsubscribe;
   }, [user]);
   useEffect(() => {
     console.log("[MailTrack] effect ran, user:", user?.email);

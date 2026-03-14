@@ -157,12 +157,13 @@
 
   async function getTrackedEmails() {
     const now = Date.now();
-    if (emailsCache && (now - emailsCacheTime) < CACHE_TTL) return emailsCache;
+    const forceRefresh = !emailsCache || (now - emailsCacheTime) >= CACHE_TTL;
+    if (emailsCache && !forceRefresh) return emailsCache;
     if (!isAuthenticated || !currentUserId) return {};
 
     return new Promise((resolve) => {
       chrome.runtime.sendMessage(
-        { type: "GET_TRACKED_EMAILS", userId: currentUserId },
+        { type: "GET_TRACKED_EMAILS", userId: currentUserId, force: forceRefresh },
         (response) => {
           if (chrome.runtime.lastError || !response?.emails) { resolve({}); return; }
           const map = {};
@@ -312,7 +313,11 @@
     const img = document.createElement("img");
     img.src = `${API_BASE}/pixel?id=${encodeURIComponent(emailId)}`;
     img.dataset.mtId = emailId;
-    img.style.cssText = "display:none!important;width:1px!important;height:1px!important;position:absolute!important;";
+    img.width = 1;
+    img.height = 1;
+    img.alt = "";
+    img.referrerPolicy = "no-referrer";
+    img.style.cssText = "width:1px!important;height:1px!important;opacity:0!important;position:absolute!important;pointer-events:none!important;border:0!important;";
     bodyEl.appendChild(img);
     return true;
   }

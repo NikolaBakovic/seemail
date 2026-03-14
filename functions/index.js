@@ -133,11 +133,13 @@ app.get("/pixel", async (req, res) => {
       userAgent,
     });
 
-    // 4. Increment on email doc
-    await db.collection("emails").doc(emailId).update({
+    // 4. Increment on the email doc. Use set+merge so early opens are not lost
+    // if the email registration request finishes slightly later.
+    await db.collection("emails").doc(emailId).set({
+      id: emailId,
       openCount: admin.firestore.FieldValue.increment(1),
       lastOpenedAt: admin.firestore.FieldValue.serverTimestamp(),
-    }).catch(() => {});
+    }, { merge: true });
 
   } catch (err) {
     functions.logger.error("pixel tracking error", { emailId, err });
@@ -167,9 +169,10 @@ app.get("/click", async (req, res) => {
       ip: getClientIP(req),
       userAgent: req.headers["user-agent"] || "unknown",
     });
-    await db.collection("emails").doc(emailId).update({
+    await db.collection("emails").doc(emailId).set({
+      id: emailId,
       clickCount: admin.firestore.FieldValue.increment(1),
-    }).catch(() => {});
+    }, { merge: true });
   } catch (err) {
     functions.logger.error("click tracking error", { emailId, safeURL, err });
   }
@@ -196,15 +199,20 @@ app.post("/email", async (req, res) => {
       }
     }
 
-    await db.collection("emails").doc(emailId).set({
+    const emailRef = db.collection("emails").doc(emailId);
+    const existingSnap = await emailRef.get();
+    const existing = existingSnap.data() || {};
+
+    await emailRef.set({
       id: emailId,
       userId,
-      subject: subject || "(no subject)",
-      recipient: recipient || "unknown",
-      sentAt: admin.firestore.FieldValue.serverTimestamp(),
-      openCount: 0,
-      clickCount: 0,
-    });
+      subject: subject || existing.subject || "(no subject)",
+      recipient: recipient || existing.recipient || "unknown",
+      sentAt: existing.sentAt || admin.firestore.FieldValue.serverTimestamp(),
+      openCount: typeof existing.openCount === "number" ? existing.openCount : 0,
+      clickCount: typeof existing.clickCount === "number" ? existing.clickCount : 0,
+      ...(existing.lastOpenedAt ? { lastOpenedAt: existing.lastOpenedAt } : {}),
+    }, { merge: true });
 
     return res.status(201).json({ success: true, emailId });
   } catch (err) {

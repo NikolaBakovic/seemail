@@ -28,7 +28,7 @@ async function getStoredToken() {
 // ─── EMAIL CACHE ──────────────────────────────────────────────────────────────
 
 async function refreshEmailCache(force = false) {
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  const CACHE_TTL = 30 * 1000; // 30 seconds
   if (!force && emailCache.fetchedAt && (Date.now() - emailCache.fetchedAt) < CACHE_TTL) return;
 
   const token = await getStoredToken();
@@ -145,7 +145,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     // Returns from in-memory cache — zero DB reads
     case "GET_TRACKED_EMAILS": {
       (async () => {
-        await refreshEmailCache(); // only fetches if cache is stale
+        await refreshEmailCache(!!message.force); // only fetches if cache is stale unless forced
         sendResponse({ emails: emailCache.emails });
       })();
       return true;

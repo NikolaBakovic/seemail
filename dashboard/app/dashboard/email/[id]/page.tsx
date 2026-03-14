@@ -2,15 +2,14 @@
 "use client";
 // app/dashboard/email/[id]/page.tsx
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { collection, doc, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useRequireAuth } from "@/lib/withAuth";
 import { useAuth } from "@/lib/AuthContext";
 
 import {
-  getEmail,
-  getOpens,
-  getClicks,
+  db,
   EmailDoc,
   OpenDoc,
   ClickDoc,
@@ -163,7 +162,6 @@ export default function EmailDetailPage() {
   const { loading: authLoading } = useRequireAuth();
   const { user } = useAuth();
   const params = useParams();
-  const router = useRouter();
   const emailId = params?.id as string;
 
   const [email, setEmail] = useState<EmailDoc | null>(null);
@@ -174,29 +172,58 @@ export default function EmailDetailPage() {
 
   useEffect(() => {
     if (!user || !emailId) return;
-    (async () => {
-      try {
-        const [emailData, opensData, clicksData] = await Promise.all([
-          getEmail(emailId),
-          getOpens(emailId),
-          getClicks(emailId),
-        ]);
+    const unsubscribers = [
+      onSnapshot(
+        doc(db, "emails", emailId),
+        (snapshot) => {
+          const emailData = snapshot.exists() ? (snapshot.data() as EmailDoc) : null;
+          if (!emailData || emailData.userId !== user.uid) {
+            setNotFound(true);
+            setLoading(false);
+            return;
+          }
 
-        if (!emailData || emailData.userId !== user.uid) {
+          setNotFound(false);
+          setEmail(emailData);
+          setLoading(false);
+        },
+        (error) => {
+          console.error(error);
           setNotFound(true);
-          return;
+          setLoading(false);
         }
+      ),
+      onSnapshot(
+        query(
+          collection(db, "opens"),
+          where("emailId", "==", emailId),
+          orderBy("timestamp", "asc")
+        ),
+        (snapshot) => {
+          setOpens(snapshot.docs.map((doc) => doc.data() as OpenDoc));
+        },
+        (error) => {
+          console.error(error);
+        }
+      ),
+      onSnapshot(
+        query(
+          collection(db, "clicks"),
+          where("emailId", "==", emailId),
+          orderBy("timestamp", "asc")
+        ),
+        (snapshot) => {
+          setClicks(snapshot.docs.map((doc) => doc.data() as ClickDoc));
+        },
+        (error) => {
+          console.error(error);
+        }
+      ),
+    ];
 
-        setEmail(emailData);
-        setOpens(opensData);
-        setClicks(clicksData);
-      } catch (e) {
-        console.error(e);
-        setNotFound(true);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
   }, [user, emailId]);
   useEffect(() => {
     console.log("[MailTrack] effect ran, user:", user?.email);
